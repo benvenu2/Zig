@@ -1,4 +1,31 @@
 {
   "name": "Zig",
-  "displayName": "Zig"
+  "displayName": "Zig",
+  "expo": {
+    "name": "Zig",
+    "slug": "zig",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F2F0E9"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.zig.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F2F0E9"
+      },
+      "package": "com.zig.app"
+    }
+  }
 }
