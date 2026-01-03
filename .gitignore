@@ -74,6 +74,9 @@ coverage/
 # Metro
 .metro-health-check*
 
+# Expo
+.expo/
+
 # Yarn
 .yarn/*
 !.yarn/patches
