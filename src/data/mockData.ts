@@ -11,16 +11,16 @@ const getWeekNumber = (date: Date): number => {
   return Math.ceil((days + 1) / 7);
 };
 
-// Current user
+// Current user - Alex Chen from the design mockups
 export const currentUser: User = {
   id: 'current-user',
-  handle: 'you',
-  displayName: 'Your Name',
-  avatar: null,
-  bio: 'Curious about everything. Sharing the best of the internet.',
-  followerCount: 42,
-  followingCount: 128,
-  savedZigsCount: 15,
+  handle: 'concept_designer',
+  displayName: 'Alex Chen',
+  avatar: 'https://i.pravatar.cc/150?img=11',
+  bio: 'Digital Philatelist. Seeking high signal in a noisy world.',
+  followerCount: 142,
+  followingCount: 89,
+  savedZigsCount: 12,
 };
 
 // Mock users
@@ -247,25 +247,46 @@ export const mockZeitgeist: Zig[] = [...mockZigs].sort(
   (a, b) => b.savesCount - a.savesCount
 );
 
-// Mock vault items
+// Mock vault items - matches design mockups with light table metaphor
 export const mockVaultItems: VaultItem[] = [
   {
     id: 'v1',
-    link: mockLinks[4],
+    link: {
+      title: 'Pink Pony Club',
+      artist: 'Chappell Roan',
+      albumArt: 'https://picsum.photos/400/400?random=30',
+      source: 'open.spotify.com',
+      url: 'https://open.spotify.com/track/pinkponyclub',
+      type: 'song',
+    },
     addedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
     isSelected: false,
   },
   {
     id: 'v2',
-    link: mockLinks[7],
+    link: {
+      title: 'How Generative AI Is Changing Strategy',
+      description: 'The new frontier of competitive advantage',
+      image: 'https://picsum.photos/400/400?random=31',
+      source: 'hbr.org',
+      url: 'https://hbr.org/ai-strategy',
+      type: 'article',
+    },
     addedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
     isSelected: false,
   },
   {
     id: 'v3',
-    link: mockLinks[2],
+    link: {
+      title: 'Milk and Honey',
+      description: 'Poetry collection by Rupi Kaur',
+      image: 'https://picsum.photos/400/400?random=32',
+      source: 'goodreads.com',
+      url: 'https://goodreads.com/milkandhoney',
+      type: 'book',
+    },
     addedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-    isSelected: true,
+    isSelected: false,
   },
   {
     id: 'v4',
@@ -275,15 +296,22 @@ export const mockVaultItems: VaultItem[] = [
   },
 ];
 
-// Past Zigs for profile archive
+// Past Zigs for profile archive - matches design mockups
 export const mockPastZigs: Zig[] = [
   {
     id: 'past1',
     user: currentUser,
-    link: mockLinks[8],
-    caption: 'Planning my next vacation!',
+    link: {
+      title: '36 Hours in Mexico City',
+      description: 'A guide to the best of Mexico City',
+      image: 'https://picsum.photos/400/400?random=20',
+      source: 'nytimes.com',
+      url: 'https://nytimes.com/36hours',
+      type: 'article',
+    },
+    caption: 'Best tacos in Mexico City. Period.',
     publishedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-    weekNumber: weekNumber - 1,
+    weekNumber: 41,
     year: now.getFullYear(),
     savesCount: 34,
     commentsCount: 5,
@@ -293,10 +321,17 @@ export const mockPastZigs: Zig[] = [
   {
     id: 'past2',
     user: currentUser,
-    link: mockLinks[9],
-    caption: 'Timeless classic.',
+    link: {
+      title: 'VanMoof S3',
+      description: 'The smart electric bike',
+      image: 'https://picsum.photos/400/400?random=21',
+      source: 'vanmoof.com',
+      url: 'https://vanmoof.com/s3',
+      type: 'product',
+    },
+    caption: 'Finally pulled the trigger. Lives up to the hype.',
     publishedAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
-    weekNumber: weekNumber - 2,
+    weekNumber: 40,
     year: now.getFullYear(),
     savesCount: 78,
     commentsCount: 12,
@@ -309,7 +344,7 @@ export const mockPastZigs: Zig[] = [
     link: mockLinks[5],
     caption: 'Every engineer should read this.',
     publishedAt: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000),
-    weekNumber: weekNumber - 3,
+    weekNumber: 39,
     year: now.getFullYear(),
     savesCount: 156,
     commentsCount: 23,

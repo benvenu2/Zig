@@ -1,4 +1,5 @@
-// Segmented Control Component - For switching between tabs
+// Segmented Control Component - Editorial pill-style toggle
+// Part of the "Digital Tactility" design language
 
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
@@ -45,32 +46,34 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: colors.parchment,
-    borderRadius: borderRadius.md,
-    padding: spacing.xs,
+    borderRadius: 24,
+    padding: 4,
   },
 
   option: {
     flex: 1,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.sm,
+    borderRadius: 20,
   },
 
   selectedOption: {
-    backgroundColor: colors.boneWhite,
+    backgroundColor: colors.sumiInk,
   },
 
   optionText: {
-    ...typography.bodySmall,
-    fontWeight: '500',
+    ...typography.label,
+    fontSize: 12,
+    letterSpacing: 1.2,
     color: colors.stone,
+    fontWeight: '600',
   },
 
   selectedText: {
-    color: colors.sumiInk,
-    fontWeight: '600',
+    color: colors.boneWhite,
+    fontWeight: '700',
   },
 });
 

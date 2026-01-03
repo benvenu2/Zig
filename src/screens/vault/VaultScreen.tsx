@@ -1,257 +1,153 @@
-// Vault Screen - The private staging area for curating your weekly Zig
+// Vault Screen - Light Table metaphor for curating your signal
+// Part of the "Digital Tactility" design language
 
 import React, {useState} from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   TextInput,
+  Image,
   Alert,
-  Clipboard,
+  Dimensions,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '../../theme/colors';
 import {typography} from '../../theme/typography';
 import {spacing, borderRadius} from '../../theme/spacing';
-import Button from '../../components/Button';
-import LinkCard from '../../components/LinkCard';
 import {mockVaultItems} from '../../data/mockData';
 import {VaultItem} from '../../types';
 
+const {width} = Dimensions.get('window');
+const CARD_MARGIN = spacing.sm;
+const CARD_WIDTH = (width - spacing.lg * 2 - CARD_MARGIN) / 2;
+
 const VaultScreen: React.FC = () => {
   const [vaultItems, setVaultItems] = useState<VaultItem[]>(mockVaultItems);
-  const [caption, setCaption] = useState('');
-  const [isLocked, setIsLocked] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
 
-  const selectedItem = vaultItems.find((item) => item.isSelected);
-  const weekNumber = getWeekNumber(new Date());
-
-  const handleSelectItem = (itemId: string) => {
-    if (isLocked) return;
-
-    setVaultItems((items) =>
-      items.map((item) => ({
-        ...item,
-        isSelected: item.id === itemId,
-      }))
-    );
-  };
-
-  const handlePasteLink = async () => {
-    try {
-      const clipboardContent = await Clipboard.getString();
-      if (clipboardContent && isValidUrl(clipboardContent)) {
-        // In a real app, this would fetch OG tags and create a proper link
-        Alert.alert('Link Added', `Added: ${clipboardContent}`);
-      } else {
-        Alert.alert('Invalid Link', 'Please copy a valid URL to paste.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Could not paste from clipboard.');
+  const handleAddLink = () => {
+    if (linkInput.trim() && isValidUrl(linkInput.trim())) {
+      Alert.alert('Link Added', `Added: ${linkInput}`);
+      setLinkInput('');
+    } else if (linkInput.trim()) {
+      Alert.alert('Invalid Link', 'Please enter a valid URL.');
     }
   };
 
-  const handleLockIn = () => {
-    if (!selectedItem) {
-      Alert.alert('Select a Zig', 'Please select an item to lock in as your weekly Zig.');
-      return;
-    }
-
-    if (!caption.trim()) {
-      Alert.alert('Add Commentary', 'Please add your thoughts about why this is your Zig.');
-      return;
-    }
-
-    if (caption.length > 500) {
-      Alert.alert('Caption Too Long', 'Your caption must be 500 characters or less.');
-      return;
-    }
-
-    Alert.alert(
-      'Lock In Your Zig?',
-      'Once locked, your selection will be published in the Monday drop.',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Lock It In',
-          onPress: () => setIsLocked(true),
-        },
-      ]
-    );
+  const handleCardPress = (itemId: string) => {
+    console.log('View item:', itemId);
   };
 
-  const handleUnlock = () => {
-    Alert.alert(
-      'Unlock Your Zig?',
-      'You can change your selection before Monday 9 AM.',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Unlock',
-          onPress: () => setIsLocked(false),
-        },
-      ]
-    );
-  };
+  // Arrange items in masonry-like layout
+  const leftColumn: VaultItem[] = [];
+  const rightColumn: VaultItem[] = [];
+  vaultItems.forEach((item, index) => {
+    if (index % 2 === 0) {
+      leftColumn.push(item);
+    } else {
+      rightColumn.push(item);
+    }
+  });
 
-  const renderVaultItem = ({item}: {item: VaultItem}) => (
-    <TouchableOpacity
-      style={[
-        styles.candidateItem,
-        item.isSelected && styles.candidateItemSelected,
-      ]}
-      onPress={() => handleSelectItem(item.id)}
-      activeOpacity={0.7}
-      disabled={isLocked}>
-      <View style={styles.radioButton}>
-        {item.isSelected ? (
-          <View style={styles.radioButtonInner} />
-        ) : null}
-      </View>
-      <View style={styles.candidateContent}>
-        <Text style={styles.candidateTitle} numberOfLines={1}>
-          {item.link.title}
-        </Text>
-        <Text style={styles.candidateSource}>{item.link.source}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderVaultCard = (item: VaultItem, isLeft: boolean) => {
+    const imageSource = item.link.albumArt || item.link.image;
+    // Vary card heights slightly for visual interest
+    const imageHeight = isLeft ? 140 : 160;
 
-  if (isLocked && selectedItem) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Vault</Text>
-          <Text style={styles.headerSubtitle}>Week {weekNumber}</Text>
-        </View>
-
-        <View style={styles.lockedContainer}>
-          <View style={styles.lockedBadge}>
-            <Text style={styles.lockedBadgeText}>⬤ LOCKED IN</Text>
-          </View>
-
-          <Text style={styles.lockedTitle}>Ready for The Drop</Text>
-          <Text style={styles.lockedSubtitle}>
-            Your Zig will publish Monday at 9:00 AM EST
-          </Text>
-
-          <View style={styles.lockedPreview}>
-            <LinkCard link={selectedItem.link} />
-            <Text style={styles.captionPreview}>{caption}</Text>
-          </View>
-
-          <Button
-            title="Change Selection"
-            onPress={handleUnlock}
-            variant="outline"
-            fullWidth
+      <TouchableOpacity
+        key={item.id}
+        style={[styles.vaultCard, isLeft ? styles.cardLeft : styles.cardRight]}
+        onPress={() => handleCardPress(item.id)}
+        activeOpacity={0.9}>
+        {imageSource && (
+          <Image
+            source={{uri: imageSource}}
+            style={[styles.cardImage, {height: imageHeight}]}
+            resizeMode="cover"
           />
+        )}
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {item.link.title}
+          </Text>
+          <Text style={styles.cardSource}>{item.link.source}</Text>
         </View>
-      </SafeAreaView>
+      </TouchableOpacity>
     );
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Vault</Text>
-        <Text style={styles.headerSubtitle}>Week {weekNumber}</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Vault</Text>
+          <View style={styles.itemCount}>
+            <Text style={styles.itemCountText}>{vaultItems.length}</Text>
+          </View>
+        </View>
+        <Text style={styles.headerSubtitle}>CURATE YOUR SIGNAL</Text>
       </View>
 
-      {/* Input Methods */}
-      <View style={styles.inputMethods}>
-        <TouchableOpacity
-          style={styles.pasteButton}
-          onPress={handlePasteLink}
-          activeOpacity={0.7}>
-          <Text style={styles.pasteIcon}>+</Text>
-          <Text style={styles.pasteText}>Paste Link</Text>
-        </TouchableOpacity>
-
-        <View style={styles.shareSheetTip}>
-          <Text style={styles.tipText}>
-            Tip: Use "Share to Zig" from Safari or any app
-          </Text>
+      {/* Link Input */}
+      <View style={styles.inputContainer}>
+        <View style={styles.inputWrapper}>
+          <Text style={styles.linkIcon}>🔗</Text>
+          <TextInput
+            style={styles.linkInput}
+            placeholder="Paste a link to collect..."
+            placeholderTextColor={colors.stone}
+            value={linkInput}
+            onChangeText={setLinkInput}
+            onSubmitEditing={handleAddLink}
+            returnKeyType="done"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddLink}
+            activeOpacity={0.7}>
+            <Text style={styles.addButtonText}>+</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Candidates List */}
-      <View style={styles.candidatesSection}>
-        <Text style={styles.sectionTitle}>
-          CANDIDATES ({vaultItems.length})
-        </Text>
-
-        <FlatList
-          data={vaultItems}
-          renderItem={renderVaultItem}
-          keyExtractor={(item) => item.id}
-          style={styles.candidatesList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>
-                Save links throughout the week to curate your best discovery.
-              </Text>
-            </View>
-          }
-        />
-      </View>
-
-      {/* Selection Section */}
-      {selectedItem && (
-        <View style={styles.selectionSection}>
-          <View style={styles.selectionHeader}>
-            <Text style={styles.selectionLabel}>SELECTED</Text>
-            <Text style={styles.selectedTitle} numberOfLines={1}>
-              "{selectedItem.link.title}"
+      {/* Light Table - Masonry Grid */}
+      <ScrollView
+        style={styles.lightTable}
+        contentContainerStyle={styles.lightTableContent}
+        showsVerticalScrollIndicator={false}>
+        {vaultItems.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>◇</Text>
+            <Text style={styles.emptyTitle}>Your light table is empty</Text>
+            <Text style={styles.emptySubtitle}>
+              Save links throughout the week to curate your best discovery.
             </Text>
           </View>
-
-          <View style={styles.captionContainer}>
-            <View style={styles.captionHeader}>
-              <Text style={styles.captionLabel}>Your commentary</Text>
-              <Text style={styles.captionCount}>{caption.length}/500</Text>
+        ) : (
+          <View style={styles.masonryContainer}>
+            {/* Left Column */}
+            <View style={styles.column}>
+              {leftColumn.map((item) => renderVaultCard(item, true))}
             </View>
-            <TextInput
-              style={styles.captionInput}
-              placeholder="Why is this your Zig for the week?"
-              placeholderTextColor={colors.stone}
-              value={caption}
-              onChangeText={setCaption}
-              multiline
-              maxLength={500}
-            />
+            {/* Right Column */}
+            <View style={styles.column}>
+              {rightColumn.map((item) => renderVaultCard(item, false))}
+            </View>
           </View>
-
-          <Button
-            title="Lock as Weekly Zig"
-            onPress={handleLockIn}
-            fullWidth
-            size="large"
-            disabled={!caption.trim()}
-          />
-
-          <Text style={styles.lockNote}>
-            Unlocks Monday @ 9:00 AM EST
-          </Text>
-        </View>
-      )}
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-// Helper functions
-const getWeekNumber = (date: Date): number => {
-  const startOfYear = new Date(date.getFullYear(), 0, 1);
-  const days = Math.floor(
-    (date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000)
-  );
-  return Math.ceil((days + 1) / 7);
-};
-
+// Helper function
 const isValidUrl = (string: string): boolean => {
   try {
     new URL(string);
@@ -264,249 +160,177 @@ const isValidUrl = (string: string): boolean => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.paper,
   },
 
   header: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.parchment,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   headerTitle: {
-    ...typography.h2,
+    ...typography.h1,
+    fontSize: 32,
+  },
+
+  itemCount: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.parchment,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.sm,
+  },
+
+  itemCountText: {
+    ...typography.caption,
+    fontWeight: '600',
+    color: colors.charcoal,
   },
 
   headerSubtitle: {
-    ...typography.caption,
-    color: colors.stone,
-    marginTop: spacing.xs,
-  },
-
-  inputMethods: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.parchment,
-  },
-
-  pasteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.boneWhite,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.parchment,
-  },
-
-  pasteIcon: {
-    fontSize: 20,
-    color: colors.sumiInk,
-    marginRight: spacing.xs,
-  },
-
-  pasteText: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-  },
-
-  shareSheetTip: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-
-  tipText: {
-    ...typography.caption,
-    color: colors.stone,
-  },
-
-  candidatesSection: {
-    flex: 1,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-  },
-
-  sectionTitle: {
     ...typography.label,
     color: colors.stone,
-    marginBottom: spacing.md,
+    marginTop: spacing.xs,
+    letterSpacing: 2,
   },
 
-  candidatesList: {
-    flex: 1,
+  inputContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
   },
 
-  candidateItem: {
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
     backgroundColor: colors.boneWhite,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.sm,
+    borderRadius: borderRadius.lg + 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.parchment,
   },
 
-  candidateItemSelected: {
-    borderColor: colors.indigo,
-    borderWidth: 2,
+  linkIcon: {
+    fontSize: 16,
+    marginRight: spacing.sm,
+    opacity: 0.5,
   },
 
-  radioButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.stone,
-    marginRight: spacing.md,
+  linkInput: {
+    ...typography.body,
+    flex: 1,
+    paddingVertical: spacing.xs,
+    color: colors.sumiInk,
+  },
+
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.parchment,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  radioButtonInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.indigo,
-  },
-
-  candidateContent: {
-    flex: 1,
-  },
-
-  candidateTitle: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-  },
-
-  candidateSource: {
-    ...typography.caption,
-    color: colors.stone,
-    marginTop: 2,
-  },
-
-  emptyState: {
-    paddingVertical: spacing.xl,
-    alignItems: 'center',
-  },
-
-  emptyText: {
-    ...typography.body,
-    color: colors.stone,
-    textAlign: 'center',
-  },
-
-  selectionSection: {
-    backgroundColor: colors.boneWhite,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.parchment,
-  },
-
-  selectionHeader: {
-    marginBottom: spacing.md,
-  },
-
-  selectionLabel: {
-    ...typography.label,
-    color: colors.indigo,
-    marginBottom: spacing.xs,
-  },
-
-  selectedTitle: {
-    ...typography.body,
-    fontStyle: 'italic',
-  },
-
-  captionContainer: {
-    marginBottom: spacing.md,
-  },
-
-  captionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
-  },
-
-  captionLabel: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-  },
-
-  captionCount: {
-    ...typography.caption,
-    color: colors.stone,
-  },
-
-  captionInput: {
-    ...typography.body,
-    backgroundColor: colors.cream,
-    borderWidth: 1,
-    borderColor: colors.parchment,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-
-  lockNote: {
-    ...typography.caption,
-    color: colors.stone,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
-
-  // Locked state styles
-  lockedContainer: {
-    flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    alignItems: 'center',
-  },
-
-  lockedBadge: {
-    backgroundColor: colors.matcha,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg,
-  },
-
-  lockedBadgeText: {
-    ...typography.label,
-    color: colors.boneWhite,
-    letterSpacing: 1,
-  },
-
-  lockedTitle: {
-    ...typography.h2,
-    marginBottom: spacing.sm,
-  },
-
-  lockedSubtitle: {
-    ...typography.body,
-    color: colors.stone,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-
-  lockedPreview: {
-    width: '100%',
-    marginBottom: spacing.xl,
-  },
-
-  captionPreview: {
-    ...typography.body,
+  addButtonText: {
+    fontSize: 20,
     color: colors.charcoal,
-    marginTop: spacing.md,
-    fontStyle: 'italic',
+    fontWeight: '300',
+    marginTop: -2,
+  },
+
+  lightTable: {
+    flex: 1,
+  },
+
+  lightTableContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: 120, // Space for floating nav bar
+  },
+
+  masonryContainer: {
+    flexDirection: 'row',
+  },
+
+  column: {
+    flex: 1,
+  },
+
+  vaultCard: {
+    backgroundColor: colors.boneWhite,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: spacing.sm,
+    // Light table shadow effect
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+
+  cardLeft: {
+    marginRight: CARD_MARGIN / 2,
+  },
+
+  cardRight: {
+    marginLeft: CARD_MARGIN / 2,
+  },
+
+  cardImage: {
+    width: '100%',
+    backgroundColor: colors.parchment,
+  },
+
+  cardContent: {
+    padding: spacing.md,
+  },
+
+  cardTitle: {
+    ...typography.h4,
+    fontSize: 14,
+    lineHeight: 18,
+    marginBottom: spacing.xs,
+  },
+
+  cardSource: {
+    ...typography.caption,
+    color: colors.stone,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // Empty State
+  emptyState: {
+    paddingVertical: spacing.xxxl,
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+
+  emptyIcon: {
+    fontSize: 48,
+    color: colors.parchment,
+    marginBottom: spacing.md,
+  },
+
+  emptyTitle: {
+    ...typography.h3,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+
+  emptySubtitle: {
+    ...typography.body,
+    color: colors.stone,
+    textAlign: 'center',
   },
 });
 
